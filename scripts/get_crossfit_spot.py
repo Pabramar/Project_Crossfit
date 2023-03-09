@@ -78,7 +78,8 @@ def func1() -> Tuple[list, list]:
     algo = []
     for alg in algo:
         try:
-            tiki +=
+            request = requests.get(url_api_commits, auth=(args.username, args.password), headers=HEADERS_AUTH)
+            ## HEADERS_AUTH = {'Content-Type': 'application/json'} si no tiene API no usar
         except requests.request.exceptions.HTTPError as e:
             response_json = json.loads(e.response.content)
             if e.response.status_code == 404:
@@ -106,3 +107,31 @@ def _is_greater_than_months(built_plan_date: str, months: int = 3) -> bool:
 
 if __name__ == "__main__":
     main()
+    
+'''
+As webpage doesn't have API will probably use
+
+
+
+pip install html-to-json
+
+
+
+import requests
+import json
+import html_to_json
+
+username = 'vgtgayan'
+base_url = 'https://www.kaggle.com/'
+url = base_url+str(username)
+
+r = requests.get(url)
+print(r.status_code)
+
+html_string = r.text
+output_json = html_to_json.convert(html_string)
+print(output_json)
+
+
+
+'''
