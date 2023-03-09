@@ -5,12 +5,13 @@ import json
 import logging
 import os
 import re
+import requests
 import sys
 
 from typing import Tuple
 from datetime import datetime
 from logging import Logger
-from requests.exceptions import HTTPError
+# from requests.exceptions import HTTPError
 
 LOG: Logger
 
@@ -78,7 +79,7 @@ def func1() -> Tuple[list, list]:
     for alg in algo:
         try:
             tiki +=
-        except HTTPError as e:
+        except requests.request.exceptions.HTTPError as e:
             response_json = json.loads(e.response.content)
             if e.response.status_code == 404:
                 LOG.error(f"Failed  {}, http response code: {e.response.status_code}, message: {response_json['message']}")

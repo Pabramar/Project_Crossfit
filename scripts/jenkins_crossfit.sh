@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+pyenv shell 3.10.10
+
 # Create and activate virtualenv
 python3 -m venv .venv 2>&1 >> pyprocesses.log
 source .venv/bin/activate 2>&1 >> pyprocesses.log
