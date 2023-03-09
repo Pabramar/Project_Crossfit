@@ -1,0 +1,5 @@
+#Fijar versiones una vez se ejecute correctamente
+requests
+requests-oauthlib
+
+# The following requirements were added by pip freeze:
