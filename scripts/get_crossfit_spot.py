@@ -13,6 +13,8 @@ from datetime import datetime
 from logging import Logger
 # from requests.exceptions import HTTPError
 
+LOGIN_URL="https://bemadbox.com/booking/beboxin_es"
+RESERVE_URL="https://bemadbox.com/booking/73643/athlete/crossfit_teruel/reservas/"
 LOG: Logger
 
 def main():
