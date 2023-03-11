@@ -2,7 +2,7 @@ from selenium import webdriver
 import yaml
 
 # Remember to import selenium from the same python version where you installed it.
-conf = yaml.load(open('loginCredentials.yml'))
+conf = yaml.load(open('credentials.yml'))
 myFbEmail = conf['fb_user']['email']
 myFbPassword = conf['fb_user']['password']
 
