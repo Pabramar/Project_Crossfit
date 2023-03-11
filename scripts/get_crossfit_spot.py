@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -9,7 +10,6 @@ import requests
 import sys
 
 from typing import Tuple
-from datetime import datetime
 from logging import Logger
 # from requests.exceptions import HTTPError
 
@@ -85,9 +85,9 @@ def func1() -> Tuple[list, list]:
         except requests.request.exceptions.HTTPError as e:
             response_json = json.loads(e.response.content)
             if e.response.status_code == 404:
-                LOG.error(f"Failed  {}, http response code: {e.response.status_code}, message: {response_json['message']}")
+                LOG.error(f"Failed  , http response code: {e.response.status_code}, message: {response_json['message']}")
             else:
-                LOG.error(f"Failed  {}, http response code: {e.response.status_code}, message: {response_json['message']}")
+                LOG.error(f"Failed  , http response code: {e.response.status_code}, message: {response_json['message']}")
 
 # Function to check if antiquity major of 3 months (90 days) # Optional parameter months default 3 months
 def _is_greater_than_months(built_plan_date: str, months: int = 3) -> bool:
@@ -137,3 +137,31 @@ print(output_json)
 
 
 '''
+
+def get_crossfit_web_date():
+    today_date=datetime.date.ctime(datetime.date.today())
+    print(today_date) # Here we get the type of day that is
+
+    if re.search("^Mon*", today_date):
+        print("It's Monday")
+        date_class=str(datetime.date.today() + datetime.timedelta(days=1))
+        
+    elif re.search("^Tue*", today_date):
+        print("It's Tuesday")
+        date_class=str(datetime.date.today() + datetime.timedelta(days=2))
+        
+    else: 
+        with open("test.log", "a+") as myfile:
+            myfile.write("[ERROR] Not executed on monday or tuesday\n")
+        sys.exit("[ERROR] Not executed on monday or tuesday\n")
+        
+    crossfit_date_web=_convert_format(date_class)
+    LOG.info(f"Date used for web url:{crossfit_date_web}") # D-M-Y for link address
+    return crossfit_date_web
+
+def _convert_format(s: str):
+    y, d, m = s.split("-")
+    return "-".join((m, d, y))
+
+https://pabramar1999%40gmail.com:Pablo@example.com/bemadbox.com/booking/beboxin_es
+https://pabramar1999%40gmail.com:Pablo@bemadbox.com/booking/login_check
