@@ -5,6 +5,8 @@ import yaml
 conf = yaml.load(open('credentials.yml'))
 myFbEmail = conf['fb_user']['email']
 myFbPassword = conf['fb_user']['password']
+print(myFbEmail)
+print(myFbPassword)
 
 driver = webdriver.Chrome()
 

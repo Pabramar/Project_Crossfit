@@ -8,9 +8,12 @@ import os
 import re
 import requests
 import sys
+import yaml
 
 from typing import Tuple
 from logging import Logger
+from selenium import webdriver
+from yaml.loader import SafeLoader
 # from requests.exceptions import HTTPError
 
 LOGIN_URL="https://bemadbox.com/booking/beboxin_es"
@@ -19,9 +22,9 @@ LOG: Logger
 
 def main():
     """Execute main procedure for this script, which will ."""
-    args = get_arguments()
-    global LOG
-    LOG = get_logger(args.log_level)
+    # args = get_arguments()
+    # global LOG
+    # LOG = get_logger(args.log_level)
 
 def get_arguments():
     """
@@ -138,7 +141,13 @@ print(output_json)
 
 '''
 
-def get_crossfit_web_date():
+def get_crossfit_web_date() -> str:
+    """
+    Used to get the date which will be used for the url.
+
+    Returns:
+        * `str`: Contains date of the crossfit class on D-M-Y format.
+    """
     today_date=datetime.date.ctime(datetime.date.today())
     print(today_date) # Here we get the type of day that is
 
@@ -163,5 +172,12 @@ def _convert_format(s: str):
     y, d, m = s.split("-")
     return "-".join((m, d, y))
 
-https://pabramar1999%40gmail.com:Pablo@example.com/bemadbox.com/booking/beboxin_es
-https://pabramar1999%40gmail.com:Pablo@bemadbox.com/booking/login_check
+
+with open("Project_Crossfit/scripts/credentials.yaml") as stream:
+    try:
+        data = yaml.load(stream, Loader=SafeLoader)
+        myCrossfitEmail= data['fb_user']['email']
+        myCrossfitPassword = data['fb_user']['password']
+        
+    except yaml.YAMLError as exc:
+        print(exc)
