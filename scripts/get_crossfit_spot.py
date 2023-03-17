@@ -13,6 +13,7 @@ import yaml
 from typing import Tuple
 from logging import Logger
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from yaml.loader import SafeLoader
 # from requests.exceptions import HTTPError
 
@@ -23,9 +24,16 @@ LOG: Logger
 def main():
     """Execute main procedure for this script, which will ."""
     # args = get_arguments()
-    # global LOG
+    global LOG
     # LOG = get_logger(args.log_level)
-
+    LOG = get_logger('INFO')
+    web_date=get_crossfit_web_date()
+    myCrossfitEmail, myCrossfitPassword=get_user_data()
+    print(web_date)
+    print(myCrossfitEmail)
+    print(myCrossfitPassword)
+    #--- Works fine
+    
 def get_arguments():
     """
     Gets an argument given script inputs
@@ -110,9 +118,7 @@ def _is_greater_than_months(built_plan_date: str, months: int = 3) -> bool:
     dt_ = datetime(*map(int, re.split(r'[^\d]', built_plan_date)[:-1]))
     return (dt_now - dt_).days > months * 30
 
-if __name__ == "__main__":
-    main()
-    
+
 '''
 As webpage doesn't have API will probably use
 
@@ -148,7 +154,7 @@ def get_crossfit_web_date() -> str:
     Returns:
         * `str`: Contains date of the crossfit class on D-M-Y format.
     """
-    today_date=datetime.date.ctime(datetime.date.today())
+    today_date=datetime.date.ctime(datetime.date.today()+ datetime.timedelta(days=3))
     print(today_date) # Here we get the type of day that is
 
     if re.search("^Mon*", today_date):
@@ -165,19 +171,31 @@ def get_crossfit_web_date() -> str:
         sys.exit("[ERROR] Not executed on monday or tuesday\n")
         
     crossfit_date_web=_convert_format(date_class)
-    LOG.info(f"Date used for web url:{crossfit_date_web}") # D-M-Y for link address
+    LOG.info(f"Date used for web url: {crossfit_date_web}") # D-M-Y for link address
     return crossfit_date_web
 
 def _convert_format(s: str):
     y, d, m = s.split("-")
     return "-".join((m, d, y))
 
+def get_user_data() -> Tuple[str, str]:
+    with open("Project_Crossfit/scripts/credentials.yaml") as stream:
+        try:
+            data = yaml.load(stream, Loader=SafeLoader)
+            myCrossfitEmail= data['fb_user']['email']
+            myCrossfitPassword = data['fb_user']['password']
+            datos=(myCrossfitEmail, myCrossfitPassword)
+        except yaml.YAMLError as exc:
+            print(exc)
+        return datos
 
-with open("Project_Crossfit/scripts/credentials.yaml") as stream:
-    try:
-        data = yaml.load(stream, Loader=SafeLoader)
-        myCrossfitEmail= data['fb_user']['email']
-        myCrossfitPassword = data['fb_user']['password']
-        
-    except yaml.YAMLError as exc:
-        print(exc)
+
+def login(LOGIN_URL,myCrossfitEmail, myCrossfitPassword):
+    driver = webdriver.Chrome()
+    driver.get(LOGIN_URL)
+    driver.find_element(By.ID, "usr").send_keys(myCrossfitEmail)
+    driver.find_element(By.ID, "pass").send_keys(myCrossfitPassword)
+    driver.find_element(By.CLASS_NAME, "btn btn--primary type--uppercase").click()
+    
+if __name__ == "__main__":
+    main()
