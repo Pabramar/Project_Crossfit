@@ -30,9 +30,9 @@ def main():
     """Using selenium and chrome autologin into corssfit webpage and reserve spot at deserved class."""
     global LOG
     LOG = get_logger('INFO')
-    crossfit_date_url=get_crossfit_reserve_day()
+    crossfit_date_url, crossfit_date=get_crossfit_reserve_day()
     my_crossfit_email, my_crossfit_password=get_user_data()
-    login_web_crossfit(LOGIN_URL, my_crossfit_email, my_crossfit_password, crossfit_date_url)
+    login_web_crossfit(LOGIN_URL, my_crossfit_email, my_crossfit_password, crossfit_date_url, crossfit_date)
 
 def get_logger(level) -> Logger:
     """Create a logger"""
@@ -86,7 +86,7 @@ def get_crossfit_reserve_day() -> str:
     crossfit_date=_convert_format_date(date_class)
     LOG.info(f"Date used for url reserve: {crossfit_date}")
     crossfit_date_url=RESERVE_URL+crossfit_date
-    return crossfit_date_url
+    return crossfit_date_url, crossfit_date
 
 def _convert_format_date(s: str) -> str:
     y, d, m = s.split("-")
@@ -107,7 +107,7 @@ def get_user_data() -> Tuple[str, str]:
         return datos
 
 
-def login_web_crossfit(LOGIN_URL,myCrossfitEmail, myCrossfitPassword, crossfit_date_url) -> None:
+def login_web_crossfit(LOGIN_URL,myCrossfitEmail, myCrossfitPassword, crossfit_date_url, crossfit_date) -> None:
     """
     Used to automatically login into the crossfit webpage, login and reserve a spot in the selected class.
     based on the date of execution and regex provided
@@ -128,6 +128,7 @@ def login_web_crossfit(LOGIN_URL,myCrossfitEmail, myCrossfitPassword, crossfit_d
     event_id_value = _webscraping_xml(file_lines)
     try: 
         driver.find_element(By.CSS_SELECTOR, f"li.li{event_id_value} button").click()
+        LOG.info(f"Element id found: {event_id_value}, reserved spot at 20:15-21:15 date: {crossfit_date}")
     except Exception as e:
         LOG.error(f"Al pulsar el botón: {e}")
         exit()
@@ -169,6 +170,7 @@ def _log_in_url(url, driver, myCrossfitEmail, myCrossfitPassword) -> None:
         driver.find_element(By.ID, "usr").send_keys(myCrossfitEmail)
         driver.find_element(By.ID, "pass").send_keys(myCrossfitPassword)
         driver.find_element(By.CLASS_NAME, "btn").click()
+        LOG.info(f"Succesfully logged in: {url}")
     except requests.exceptions.HTTPError as err:
         LOG.error(f"HTTP error occurred: {err} \n Trying to acces url: {url}")
     except Exception as err:
