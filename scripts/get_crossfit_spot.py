@@ -1,53 +1,38 @@
 #!/usr/bin/env python3
 
-import argparse
 import datetime
 import json
 import logging
 import os
+
 import re
 import requests
 import sys
 import yaml
 import time
 
+
 from typing import Tuple
 from logging import Logger
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from yaml.loader import SafeLoader
-
+from pyfiglet import figlet_format
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-# from requests.exceptions import HTTPError
 
 LOGIN_URL="https://bemadbox.com/box/beboxin_es"
 RESERVE_URL="https://bemadbox.com/booking/73643/athlete/crossfit_teruel/reservas/"
 LOG: Logger
 
 def main():
-    """Execute main procedure for this script, which will ."""
-    # args = get_arguments()
+    """Using selenium and chrome autologin into corssfit webpage and reserve spot at deserved class."""
     global LOG
-    # LOG = get_logger(args.log_level)
     LOG = get_logger('INFO')
-    crossfit_date_url, regex=get_crossfit_web_date()
-    myCrossfitEmail, myCrossfitPassword=get_user_data()
-    login_web_crosffit(LOGIN_URL, myCrossfitEmail, myCrossfitPassword, crossfit_date_url, regex)
-    
-def get_arguments():
-    """
-    Gets an argument given script inputs
-    returns: parser.parse_args()
-    """
-    # Parse arguments
-    parser = argparse.ArgumentParser(description='Get user data and log level')
-    parser.add_argument('-u', '--username', type=str, help='User', required=True)
-    parser.add_argument('-p', '--password', type=str, help='Password', required=True)
-    parser.add_argument('-l', '--log-level', type=str, default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Logging level. Default: INFO')
-
-    return parser.parse_args()
+    crossfit_date_url=get_crossfit_reserve_day()
+    my_crossfit_email, my_crossfit_password=get_user_data()
+    login_web_crossfit(LOGIN_URL, my_crossfit_email, my_crossfit_password, crossfit_date_url)
 
 def get_logger(level) -> Logger:
     """Create a logger"""
@@ -74,116 +59,43 @@ def get_logger(level) -> Logger:
     logger.addHandler(f_handler)
     return logger
 
-def func1() -> Tuple[list, list]:
+def get_crossfit_reserve_day() -> str:
     """
-    Use  to get .
-
-    Arguments:
-        * `args`: Diff args
+    Used to get the date which will be used for the url reserve day.
 
     Returns:
-        * `list`: List of 
-        * `list`: List of 
+        * `str`: date of the crossfit class on D-M-Y format.
+        * `str`: Regex.
     """
-
-    
-    LOG.debug(f": {len()}")
-
-    # Get all_plans from all_projects
-    algo = []
-    for alg in algo:
-        try:
-            request = requests.get(url_api_commits, auth=(args.username, args.password), headers=HEADERS_AUTH)
-            ## HEADERS_AUTH = {'Content-Type': 'application/json'} si no tiene API no usar
-        except requests.request.exceptions.HTTPError as e:
-            response_json = json.loads(e.response.content)
-            if e.response.status_code == 404:
-                LOG.error(f"Failed  , http response code: {e.response.status_code}, message: {response_json['message']}")
-            else:
-                LOG.error(f"Failed  , http response code: {e.response.status_code}, message: {response_json['message']}")
-
-# Function to check if antiquity major of 3 months (90 days) # Optional parameter months default 3 months
-def _is_greater_than_months(built_plan_date: str, months: int = 3) -> bool:
-    """
-    Used to compare if the date is older than 3 months.
-
-    Arguments:
-        * `built_plan_date `: Date of 
-        * `months`: Number of months to compare. Default: 3
-
-    Returns:
-        * `bool`: True if the date is older than the months specified
-    """
-    dt_now = datetime.now()
-    
-    # Cambio de formato de la fecha obtenida de en ISO 8601
-    dt_ = datetime(*map(int, re.split(r'[^\d]', built_plan_date)[:-1]))
-    return (dt_now - dt_).days > months * 30
-
-
-'''
-As webpage doesn't have API will probably use
-
-
-
-pip install html-to-json
-
-
-
-import requests
-import json
-import html_to_json
-
-username = 'vgtgayan'
-base_url = 'https://www.kaggle.com/'
-url = base_url+str(username)
-
-r = requests.get(url)
-print(r.status_code)
-
-html_string = r.text
-output_json = html_to_json.convert(html_string)
-print(output_json)
-
-
-
-'''
-
-def get_crossfit_web_date() -> str:
-    """
-    Used to get the date which will be used for the url.
-
-    Returns:
-        * `str`: Contains date of the crossfit class on D-M-Y format.
-    """
-    today_date=datetime.date.ctime(datetime.date.today()+ datetime.timedelta(days=-2))
-    print(today_date) # Here we get the type of day that is
+    today_date=datetime.date.ctime(datetime.date.today()+ datetime.timedelta(days=1))
+    today_date_print=_convert_format_date(str(datetime.date.today() + datetime.timedelta(days=1)))
 
     if re.search("^Mon*", today_date):
-        print("It's Monday")
-        date_class=str(datetime.date.today() + datetime.timedelta(days=-2))
-        regex='<h4>CROSSFIT\/INICIACION<\/h4>\s*<p>20:15 - 21:15<\/p>(\s*.*)*'
-        
-    elif re.search("^Tue*", today_date):
-        print("It's Tuesday")
+        LOG.info(f"It's Monday {today_date_print}")
         date_class=str(datetime.date.today() + datetime.timedelta(days=2))
-        regex=r"<h4>INICIACION<\\/h4>\\s*<p>20:15 - 21:15<\\/p>\\s*<input type=\"hidden\" name=\"event_id\" value=\"(\\d*)\""
-        
+
+    elif re.search("^Tue*", today_date):
+        LOG.info(f"It's Tuesday {today_date_print}")
+        date_class=str(datetime.date.today() + datetime.timedelta(days=2))
+
     else: 
         with open("test.log", "a+") as myfile:
-            myfile.write("[ERROR] Not executed on monday or tuesday\n")
-        sys.exit("[ERROR] Not executed on monday or tuesday\n")
-        
-    crossfit_date=_convert_format(date_class)
-    LOG.info(f"Date used for web url: {crossfit_date}") # D-M-Y for link address
+            LOG.error(f"Not executed on monday or tuesday: {today_date_print}")
+        exit()
+    
+    crossfit_date=_convert_format_date(date_class)
+    LOG.info(f"Date used for url reserve: {crossfit_date}")
     crossfit_date_url=RESERVE_URL+crossfit_date
-    return crossfit_date_url, regex
+    return crossfit_date_url
 
-def _convert_format(s: str):
+def _convert_format_date(s: str) -> str:
     y, d, m = s.split("-")
     return "-".join((m, d, y))
 
 def get_user_data() -> Tuple[str, str]:
+    """
+    Extract user data for login from yaml file
+    """
     with open("Project_Crossfit/scripts/credentials.yaml") as stream:
         try:
             data = yaml.load(stream, Loader=SafeLoader)
@@ -195,72 +107,74 @@ def get_user_data() -> Tuple[str, str]:
         return datos
 
 
-def login_web_crosffit(LOGIN_URL,myCrossfitEmail, myCrossfitPassword, crossfit_date_url, regex):
+def login_web_crossfit(LOGIN_URL,myCrossfitEmail, myCrossfitPassword, crossfit_date_url) -> None:
+    """
+    Used to automatically login into the crossfit webpage, login and reserve a spot in the selected class.
+    based on the date of execution and regex provided
+    """
     driver = webdriver.Chrome()
-    driver.get(LOGIN_URL)
-    driver.find_element(By.ID, "usr").send_keys(myCrossfitEmail)
-    driver.find_element(By.ID, "pass").send_keys(myCrossfitPassword)
-    driver.find_element(By.CLASS_NAME, "btn").click()
+    
+    _log_in_url(LOGIN_URL, driver, myCrossfitEmail, myCrossfitPassword)
+    _log_in_url(crossfit_date_url, driver, myCrossfitEmail, myCrossfitPassword)
+    
+    time.sleep(2)
     driver.get(crossfit_date_url)
-    driver.find_element(By.ID, "usr").send_keys(myCrossfitEmail)
-    driver.find_element(By.ID, "pass").send_keys(myCrossfitPassword)
-    driver.find_element(By.CLASS_NAME, "btn").click()
-    respone=requests.get(crossfit_date_url)
-    # Webscrapping -> filter to get id from button Iniciación at 20:15
-    time.sleep(5) # Añadido para que cargue toda la página
-    driver.get(crossfit_date_url)
-    wait = WebDriverWait(driver, 10)
-    algo=driver.page_source
-    f = open("xml.log","w+")
-    f.write(driver.page_source)
-    file= open("xml.log", 'r')
-    file_lines=file.read()
-    algo2=" "+'"'+"'"+algo+"'"+'"'
-    webscraping_xml(algo, file_lines,algo2, regex)
     
-def reserve_spot_web_crosffit(crossfit_date_url):
-    driver = webdriver.Chrome()
-    driver.get(crossfit_date_url)
-    driver.find_element(By.CLASS_NAME, "btn").click()
-    
-def webscraping_xml(algo, file_lines, algo2, regex):
-    #x = re.search('<h4>CROSSFIT\/INICIACION<\/h4>\\n\s*<p>20:15 - 21:15.*name=\"event_id\" value=\"\d*\"', algo)
-    # print(re.search('CROSSFIT\/INICIACION', algo))
-    # print(re.search('<h4>CROSSFIT\/INICIACION<\/h4>', algo))
-    # print(re.match('<h4>CROSSFIT\/INICIACION<\/h4>', algo))
-    
-    
-    # Posible solución, invocar un script de bash y pasarle un txt y la regex y así ahorrar complejidad con grep
-    
-    print(type(algo))
-    matches = re.finditer(regex, algo, re.MULTILINE)
-
-    for matchNum, match in enumerate(matches, start=1):
+    with open("xml.log", "w+") as f:
+        f.write(driver.page_source)
+    with open("xml.log", "r") as file:
+        file_lines = file.read()
         
-        print ("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum = matchNum, start = match.start(), end = match.end(), match = match.group()))
-        
-        for groupNum in range(0, len(match.groups())):
-            groupNum = groupNum + 1
-            
-            print ("Group {groupNum} found at {start}-{end}: {group}".format(groupNum = groupNum, start = match.start(groupNum), end = match.end(groupNum), group = match.group(groupNum)))
-    
-    matches=re.finditer(regex, file_lines, re.MULTILINE)
-    print("ESTO??")
-    for elemento in matches:
-        print(elemento)
-    print("AAAAAAAAAAAAAAAAAAAAAAAA")
+    event_id_value = _webscraping_xml(file_lines)
+    try: 
+        driver.find_element(By.CSS_SELECTOR, f"li.li{event_id_value} button").click()
+    except Exception as e:
+        LOG.error(f"Al pulsar el botón: {e}")
+        exit()
 
-    print(list(matches))
-    matchRegexOne = re.search('<h4>CROSSFIT\/INICIACION<\/h4>\s*<p>20:15 - 21:15<\/p>(\s*.*)*', file_lines, re.MULTILINE)
-    if matchRegexOne:
-        match2 = match.group(0)
-        print(match2)
-        matchRegexTwo = re.search(r'value="(\d+)"', match2, re.MULTILINE)
-        if matchRegexTwo:
-            eventIdValue = matchRegexTwo.group(1)
-            print(eventIdValue)
+    os.remove("xml.log")    
+    print(figlet_format("Succesfull", font= "standard"))
+
+def _webscraping_xml(file_lines) -> str:
+    """
+    Used to find the button element and it's ID for the selected class.
+    """
+    regex_list=[r'<h4>INICIACION<\/h4>\s*<p>20:15 - 21:15<\/p>(\s*.*)*', r'<h4>CROSSFIT\/INICIACION<\/h4>\s*<p>20:15 - 21:15<\/p>(\s*.*)*']
+    
+    for regex in regex_list:
+        matchRegexOne = re.search(regex, file_lines, re.MULTILINE)
+        if matchRegexOne:
+            match2 = matchRegexOne.group(0)
+            matchRegexTwo = re.search(r'value="(\d+)"', match2, re.MULTILINE)
+            if matchRegexTwo:
+                eventIdValue = matchRegexTwo.group(1)
+                return eventIdValue
+            else:
+                LOG.error("Event_id value not found.")
+                os.remove("xml.log")
+                exit()
         else:
-            print("No se encontró el valor de event_id.")
+            LOG.error("Regex didn't match.")
+            os.remove("xml.log")
+            exit()
+    
+
+def _log_in_url(url, driver, myCrossfitEmail, myCrossfitPassword) -> None:
+    """
+    Used to log in the specified url.
+    Will raise an error for status codes other than 200
+    """
+    try:
+        driver.get(url)
+        driver.find_element(By.ID, "usr").send_keys(myCrossfitEmail)
+        driver.find_element(By.ID, "pass").send_keys(myCrossfitPassword)
+        driver.find_element(By.CLASS_NAME, "btn").click()
+    except requests.exceptions.HTTPError as err:
+        LOG.error(f"HTTP error occurred: {err} \n Trying to acces url: {url}")
+    except Exception as err:
+        LOG.error(f"Other error occurred: {err} \n Trying to acces url: {url}")
+    else:
+        return
 
 if __name__ == "__main__":
     main()
