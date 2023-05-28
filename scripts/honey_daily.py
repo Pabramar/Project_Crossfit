@@ -32,8 +32,8 @@ def main():
     LOG = get_logger('INFO')
     today_date_print=str(datetime.date.today())
     LOG.info(f"Execution date: {today_date_print}")
-    my_crossfit_email, my_crossfit_password=get_user_data()
-    login_web_crossfit(LOGIN_URL, my_crossfit_email, my_crossfit_password, today_date_print)
+    Honey_email, Honey_password=get_user_data()
+    login_web(LOGIN_URL, Honey_email, Honey_password, today_date_print)
 
 def get_logger(level) -> Logger:
     """Create a logger"""
@@ -64,79 +64,51 @@ def get_user_data() -> Tuple[str, str]:
     """
     Extract user data for login from yaml file
     """
-    with open("Project_Crossfit/scripts/credentials.yaml") as stream:
+    with open("Project_Crossfit/scripts/credentials_honey.yaml") as stream:
         try:
             data = yaml.load(stream, Loader=SafeLoader)
-            HoneyEmail= data['fb_user']['email']
-            HoneyPassword = data['fb_user']['password']
-            datos=(HoneyEmail, HoneyPassword)
+            Honey_email= data['honey_user']['email']
+            Honey_password = data['honey_user']['password']
+            datos=(Honey_email, Honey_password)
         except yaml.YAMLError as exc:
             print(exc)
         return datos
 
 
-def login_web_crossfit(LOGIN_URL,HoneyEmail, HoneyPassword, today_date_print) -> None:
+def login_web(LOGIN_URL,Honey_email, Honey_password, today_date_print) -> None:
     """
     Used to automatically login into the crossfit webpage, login and reserve a spot in the selected class.
     based on the date of execution and regex provided
     """
     driver = webdriver.Chrome()
     
-    _log_in_url(LOGIN_URL, driver, HoneyEmail, HoneyPassword)
+    _log_in_url(LOGIN_URL, driver, Honey_email, Honey_password)
     
     time.sleep(2)
     # Get actual address
-    driver.get(adress)
-    
-    with open("xml.log", "w+") as f:
-        f.write(driver.page_source)
-    with open("xml.log", "r") as file:
-        file_lines = file.read()
-        
-    event_id_value = _webscraping_xml(file_lines)
+    current_url = driver.current_url
+    LOG.info(f"Actual url: {current_url}")
+    driver.get(current_url)
+         
     try: 
-        driver.find_element(By.CSS_SELECTOR, f"li.li{event_id_value} button").click()
-        LOG.info(f"Element id found: {event_id_value}, pressed button date: {today_date_print}")
+        driver.find_element(By.CLASS_NAME, "sc-gWHAAX").click()
+        LOG.info(f"Lucky Pot claimed.")
     except Exception as e:
         LOG.error(f"Al pulsar el botón: {e}")
         exit()
-
-    os.remove("xml.log")    
+        
     print(figlet_format("Succesfull", font= "standard"))
 
-def _webscraping_xml() -> str:
-    """
-    Used to find the button element and it's ID for the selected class.
-    """
-    regex=[r'<h4>INICIACION<\/h4>\s*<p>20:15 - 21:15<\/p>(\s*.*)*', r'<h4>CROSSFIT\/INICIACION<\/h4>\s*<p>20:15 - 21:15<\/p>(\s*.*)*']
-    
-            matchRegexOne = re.search(regex, re.MULTILINE)
-            if matchRegexOne:
-                match2 = matchRegexOne.group(0)
-                matchRegexTwo = re.search(r'value="(\d+)"', match2, re.MULTILINE)
-                if matchRegexTwo:
-                    eventIdValue = matchRegexTwo.group(1)
-                    return eventIdValue
-                else:
-                    LOG.error("Event_id value not found.")
-                    os.remove("xml.log")
-                    exit()
-            else:
-                LOG.error("Regex didn't match.")
-                os.remove("xml.log")
-                exit()
-    
-
-def _log_in_url(url, driver, HoneyEmail, HoneyPassword) -> None:
+def _log_in_url(url, driver, Honey_email, Honey_password) -> None:
     """
     Used to log in the specified url.
     Will raise an error for status codes other than 200
     """
     try:
         driver.get(url)
-        driver.find_element(By.ID, "usr").send_keys(HoneyEmail)
-        driver.find_element(By.ID, "pass").send_keys(HoneyPassword)
-        driver.find_element(By.CLASS_NAME, "btn").click()
+        driver.find_element(By.ID, "email").send_keys(Honey_email)
+        driver.find_element(By.ID, "password").send_keys(Honey_password)
+        driver.find_element(By.CLASS_NAME, "sc-gWHAAX").click()
         LOG.info(f"Succesfully logged in: {url}")
     except requests.exceptions.HTTPError as err:
         LOG.error(f"HTTP error occurred: {err} \n Trying to acces url: {url}")
