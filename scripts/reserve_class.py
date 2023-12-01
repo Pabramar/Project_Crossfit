@@ -96,7 +96,7 @@ def get_user_data() -> Tuple[str, str]:
     """
     Extract user data for login from yaml file
     """
-    with open("Project_Crossfit/scripts/credentials.yaml") as stream:
+    with open("scripts/credentials.yaml") as stream:
         try:
             data = yaml.load(stream, Loader=SafeLoader)
             myCrossfitEmail= data['fb_user']['email']

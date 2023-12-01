@@ -11,7 +11,7 @@ import sys
 import yaml
 import time
 
-
+    
 from typing import Tuple
 from logging import Logger
 from selenium import webdriver
@@ -64,7 +64,7 @@ def get_user_data() -> Tuple[str, str]:
     """
     Extract user data for login from yaml file
     """
-    with open("Project_Crossfit/scripts/credentials_honey.yaml") as stream:
+    with open("scripts/credentials_honey.yaml") as stream:
         try:
             data = yaml.load(stream, Loader=SafeLoader)
             Honey_email= data['honey_user']['email']
@@ -81,17 +81,19 @@ def login_web(LOGIN_URL,Honey_email, Honey_password, today_date_print) -> None:
     based on the date of execution and regex provided
     """
     driver = webdriver.Chrome()
-    
+
     _log_in_url(LOGIN_URL, driver, Honey_email, Honey_password)
-    
-    time.sleep(2)
+
     # Get actual address
     current_url = driver.current_url
+    while current_url == LOGIN_URL:
+        _log_in_url(LOGIN_URL, driver, Honey_email, Honey_password)
     LOG.info(f"Actual url: {current_url}")
     driver.get(current_url)
          
     try: 
-        driver.find_element(By.CLASS_NAME, "sc-gWHAAX").click()
+        time.sleep(1)
+        driver.find_element(By.CSS_SELECTOR, "button.sc-gWHAAX.jwDkLI").click()
         LOG.info(f"Lucky Pot claimed.")
     except Exception as e:
         LOG.error(f"Al pulsar el botón: {e}")
@@ -99,21 +101,22 @@ def login_web(LOGIN_URL,Honey_email, Honey_password, today_date_print) -> None:
         
     print(figlet_format("Succesfull", font= "standard"))
 
-def _log_in_url(url, driver, Honey_email, Honey_password) -> None:
+def _log_in_url(LOGIN_URL, driver, Honey_email, Honey_password) -> None:
     """
     Used to log in the specified url.
     Will raise an error for status codes other than 200
     """
     try:
-        driver.get(url)
+        driver.get(LOGIN_URL)
+        driver.find_element(By.CSS_SELECTOR, "button.sc-gWHAAX.dnroEd").click()
         driver.find_element(By.ID, "email").send_keys(Honey_email)
         driver.find_element(By.ID, "password").send_keys(Honey_password)
-        driver.find_element(By.CLASS_NAME, "sc-gWHAAX").click()
-        LOG.info(f"Succesfully logged in: {url}")
+        driver.find_element(By.CSS_SELECTOR, "button.sc-gWHAAX.bqmTxx").click()
+        LOG.info(f"Succesfully logged in: {LOGIN_URL}")
     except requests.exceptions.HTTPError as err:
-        LOG.error(f"HTTP error occurred: {err} \n Trying to acces url: {url}")
+        LOG.error(f"HTTP error occurred: {err} \n Trying to acces url: {LOGIN_URL}")
     except Exception as err:
-        LOG.error(f"Other error occurred: {err} \n Trying to acces url: {url}")
+        LOG.error(f"Other error occurred: {err} \n Trying to acces url: {LOGIN_URL}")
     else:
         return
 
